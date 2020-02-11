@@ -1,0 +1,120 @@
+stages:
+  - build_image
+  - push_image
+  - testing
+  - deploy_image
+    
+build_image:
+  stage: build_image
+  tags: 
+    - DOCKER
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://dockerparent:2375/  
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:stable-dind
+  allow_failure: false
+  script:
+    - docker build -t ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME} .
+    
+    
+push_image:
+  stage: push_image
+  tags: 
+    - DOCKER
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://dockerparent:2375/
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:stable-dind
+  allow_failure: false
+  script:
+    - docker login $HARBOR
+    - docker tag ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME} harbor.sb.cl/$HARBOR_PROJECT/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}
+    - docker push harbor.sb.cl/$HARBOR_PROJECT/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}
+
+
+code_quality:
+  stage: testing
+  tags: 
+    - DOCKER
+  image: harbor.sb.cl/infraestructura/sonarqube-scanner-nodejs:latest    
+  only:
+    - dev     
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  script:
+    - /opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=${CI_PROJECT_NAME} -Dsonar.sources=. -Dsonar.host.url=https://sonarqube.sb.cl -Dsonar.login=8369632697cacf242eb4d5c4f771dc0c93f3a1ce
+sast:
+  stage: testing
+  tags: 
+    - DOCKER
+  image: harbor.sb.cl/imagenes-alpine/alpine-node812:latest
+  allow_failure: true
+  script: 
+    - npm install
+    - echo "Se utilizara npm audit para analisis de seguridad"
+    - npm audit
+
+ 
+ephemeral_run:
+  stage: testing
+  tags:
+     - DOCKER
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://dockerparent:2375/
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:stable-dind
+  allow_failure: true
+  script:
+    - docker run -d --name ${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA} ${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}
+    - docker_ip_address=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA})
+    - sleep 20s
+    - apk add curl
+    - curl -v $docker_ip_address:8080
+    - docker rm ${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA} --force
+
+deploy_image_dev:
+  stage: deploy_image
+  tags: 
+    - DOCKER
+  image: harbor.sb.cl/infraestructura/origin-cli:v3.11
+  allow_failure: false
+  only:
+    - dev
+  script:
+    - oc login $OPENSHIFT_DEV
+    - oc project $OPENSHIFT_PROJECT_DEV
+    - oc import-image harbor.sb.cl/$HARBOR_PROJECT/${CI_PROJECT_NAME}:dev
+   
+
+deploy_image_qa:
+  stage: deploy_image
+  tags: 
+    - DOCKER
+  image: harbor.sb.cl/infraestructura/origin-cli:v3.11
+  allow_failure: false
+  only:
+    - qa
+  script:
+    - oc login $OPENSHIFT_QA
+    - oc project $OPENSHIFT_PROJECT_QA
+    - oc import-image harbor.sb.cl/$HARBOR_PROJECT/${CI_PROJECT_NAME}:qa
+
+deploy_image_master:
+  stage: deploy_image
+  tags: 
+    - DOCKER
+  image: harbor.sb.cl/infraestructura/origin-cli:v3.11
+  allow_failure: false
+  only:
+    - master
+  script:
+    - oc login $OPENSHIFT_PROD
+    - oc project $OPENSHIFT_PROJECT_PROD
+    - oc import-image harbor.sb.cl/$HARBOR_PROJECT/${CI_PROJECT_NAME}:master

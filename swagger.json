@@ -1,0 +1,377 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "description": "UZAVE SERVICE API",
+      "version": "1.0.0",
+      "title": "Service UZAVE"
+   },
+   "paths": {
+      "/api/uzave/consulta": {
+         "post": {
+            "summary": "Consulta rut cliente",
+            "tags": [
+               "Consulta"
+            ],
+            "description": "Recibe un xml con datos del cliente. Se procesa el xml y se envia una peticion a uzave con ese rut, la respuesta de uzave es procesada y de existir el cliente se genera un xml con los datos del mismo.",
+            "requestBody": {
+               "description": "Se recibe como parametro un xml con datos, en donde las posiciones de 3-13 del campo \"text\" corresponden al rut del cliente",
+               "required": true,
+               "content": {
+                  "application/xml": {
+                     "schema": {
+                        "$ref": "#/components/schemas/xml_client_in"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Rut verified",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_cliente_out"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Generic Error",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_error"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/api/uzave/afiliacion": {
+         "post": {
+            "summary": "Consulta programa de afiliacion",
+            "tags": [
+               "Afiliacion"
+            ],
+            "description": "Recibe un xml en el cual existe un programa se consulta a uzave y se procesa su respuesta en caso de existir el programa se genera un xml con los datos",
+            "requestBody": {
+               "description": "Recibe xml del cual lo unico que se necesita es lo que contiene \"program\"",
+               "required": true,
+               "content": {
+                  "application/xml": {
+                     "schema": {
+                        "$ref": "#/components/schemas/xml_afiliacion_in"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "success",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_afiliacion_out"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Generic Error",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_error_afiliacion"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/api/uzave/cargo": {
+         "post": {
+            "summary": "Cargo de Transaccion a cliente",
+            "tags": [
+               "Cargo"
+            ],
+            "description": "--",
+            "requestBody": {
+               "description": "Se recibe como parametro un xml con datos los cuales se encuentran en req/_text los datos del cliente y en hdr/_text los datos del comercio. Se reconocen por la posicion\nreq\n\n\nRut  3-13(1),\nPurchase amount 13-21(2), \nUzave amount 21-29(3),   \nDiscount amount 29-37(4),   \nBenefit amount 37-45(5),   \nSale channel 45-47(6),\nProgram 47-49(7)\n\n\nhdr\n\n\nStore code 3-6(A), \nPOS number 6-9(B),\nDate 9-17(C), \nTime 17-23(D), \nTicket code 23-33(E),",
+               "required": true,
+               "content": {
+                  "application/xml": {
+                     "schema": {
+                        "$ref": "#/components/schemas/xml_cargo_in"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Success",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_cargo_out"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Generic Error",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_error"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/api/uzave/anulacion": {
+         "post": {
+            "summary": "Anulacion de Transaccion a cliente",
+            "tags": [
+               "Anulacion"
+            ],
+            "description": "Se recibe un xml con datos del cliente y comercio. Se procesa el xml y se consulta en uzave, en el caso de existir la transaccion se realiza un delete.",
+            "requestBody": {
+               "description": "Se recibe como parametro un xml con datos los cuales se encuentran en req/_text los datos del cliente y en hdr/_text los datos del comercio. Se reconocen por la posicion\nreq\n\n\nRut  3-13(1),\nCode UZAVE 3-39(2),\nType 53-54(3)\n\n\nhdr\n\n\nStore code 3-6(A), \nDate 9-17(B), \nTime 17-23(C),",
+               "required": true,
+               "content": {
+                  "application/xml": {
+                     "schema": {
+                        "$ref": "#/components/schemas/xml_anulacion_in"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "Sucess",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_anulacion_out"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Generic Error",
+                  "content": {
+                     "application/xml": {
+                        "schema": {
+                           "$ref": "#/components/schemas/xml_error"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "servers": [
+      {
+         "description": "SwaggerHub API Auto Mocking",
+         "url": "https://virtserver.swaggerhub.com/yanow/servicio-uzave/1.0.0"
+      },
+      {
+         "description": "SwaggerHub API Auto Mocking",
+         "url": "localhost:3030/api/uzave"
+      }
+   ],
+   "components": {
+      "schemas": {
+         "xml_client_in": {
+            "type": "object",
+            "properties": {
+               "Execute": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string",
+                        "example": "AAAAAAAAAAAAAAAAAA"
+                     },
+                     "req": {
+                        "type": "string",
+                        "example": "XXX1111111111XXXXXXX"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_cliente_out": {
+            "type": "object",
+            "properties": {
+               "ExecuteResponse": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string"
+                     },
+                     "rsp": {
+                        "type": "string",
+                        "example": "AABBBCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDEEEFFFFFFFFFFFFFFFFFFFFGGGGGGGGGGGGGGGGGGGGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_afiliacion_in": {
+            "type": "object",
+            "properties": {
+               "body": {
+                  "type": "object",
+                  "properties": {
+                     "data": {
+                        "type": "object",
+                        "properties": {
+                           "program": {
+                              "type": "string",
+                              "example": "AAAAAAAAAAAAAA"
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         },
+         "xml_afiliacion_out": {
+            "type": "object",
+            "properties": {
+               "hdr": {
+                  "type": "string"
+               },
+               "rsp": {
+                  "type": "array",
+                  "items": {
+                     "type": "string",
+                     "example": "XXXXXXXXXXXXXXXXXXXXX"
+                  }
+               },
+               "org": {
+                  "type": "string",
+                  "example": "AAAAAAAAAAAAAAAAAA"
+               },
+               "dsc": {
+                  "type": "string",
+                  "example": "XXXXXXXXXXXXXXXXXX"
+               }
+            }
+         },
+         "xml_error_afiliacion": {
+            "type": "object",
+            "properties": {
+               "hdr": {
+                  "type": "string",
+                  "example": "AAAAAAAAAAAAAAAAAAAAA"
+               },
+               "rsp": {
+                  "type": "string",
+                  "example": "XXXXXXXXXXXXXXXXXXXX"
+               },
+               "org": {
+                  "type": "string",
+                  "example": "AAAAAAAAAAAAAAAAAAAAA"
+               },
+               "dsc": {
+                  "type": "string",
+                  "example": "XXXXXXXXXXXXXXXXXXXX"
+               }
+            }
+         },
+         "xml_cargo_in": {
+            "type": "object",
+            "properties": {
+               "Execute": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string",
+                        "example": "XXXAAABBBCCCCCCCCDDDDDDEEEEEEEEEE"
+                     },
+                     "req": {
+                        "type": "string",
+                        "example": "XXX111111111222222223333333344444444555555556677"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_cargo_out": {
+            "type": "object",
+            "properties": {
+               "ExecuteResponse": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string"
+                     },
+                     "rsp": {
+                        "type": "string",
+                        "example": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_anulacion_in": {
+            "type": "object",
+            "properties": {
+               "Execute": {
+                  "type": "object",
+                  "properties": {
+                     "req": {
+                        "type": "string",
+                        "example": "XXX111111111122222222222222222222222XXXXXXXXXXXXXX3"
+                     },
+                     "hdr": {
+                        "type": "string",
+                        "example": "XXXXAAAXXXBBBBBBBBCCCCCC"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_anulacion_out": {
+            "type": "object",
+            "properties": {
+               "ExecuteResponse": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string"
+                     },
+                     "rsp": {
+                        "type": "string",
+                        "example": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                     }
+                  }
+               }
+            }
+         },
+         "xml_error": {
+            "type": "object",
+            "properties": {
+               "ExecuteResponse": {
+                  "type": "object",
+                  "properties": {
+                     "hdr": {
+                        "type": "string"
+                     },
+                     "rsp": {
+                        "type": "string",
+                        "example": "99AAAERROR 500 NodeJSBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+}
